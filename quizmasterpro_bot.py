@@ -1,16 +1,19 @@
-
 import telebot
 from telebot import types
 
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+# ===== CONFIG =====
+BOT_TOKEN = "YOUR_BOT_TOKEN"  # এখানে তোমার Bot Token বসাও
 ADMIN_ID = 6286829289
 CORRECT_ANSWER_REWARD = 0.50
 REFERRAL_REWARD = 20.00
 MIN_WITHDRAW = 100.00
-WEBAPP_URL = "https://quizmasterpro.vercel.app"
+
+# Mini App URL
+WEBAPP_URL = "https://quizmasterpro.vercel.app"  # হোস্ট করা Mini App
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
+# ===== DATABASE =====
 users = {}
 quiz_questions = [
     {"q": "বাংলাদেশের রাজধানী কোথায়?", "a": "ঢাকা"},
@@ -19,6 +22,7 @@ quiz_questions = [
 ]
 pending_withdraws = []
 
+# ===== START =====
 @bot.message_handler(commands=["start"])
 def start(msg):
     uid = msg.from_user.id
@@ -35,6 +39,7 @@ def start(msg):
     markup.add("🎬 বিজ্ঞাপন দেখুন","🧠 কুইজ শুরু","💰 ব্যালেন্স")
     bot.send_message(uid,"👋 স্বাগতম QuizMasterPro-তে!",reply_markup=markup)
 
+# ===== TEXT HANDLER =====
 @bot.message_handler(func=lambda m: True)
 def handle_message(msg):
     uid = msg.from_user.id
@@ -49,6 +54,7 @@ def handle_message(msg):
                                            web_app=types.WebAppInfo(WEBAPP_URL)))
         bot.send_message(uid,"🎬 নিচের বাটনে ক্লিক করে বিজ্ঞাপন দেখুন:",reply_markup=btn)
 
+# ===== QUIZ =====
 def start_quiz(msg):
     uid = msg.from_user.id
     if uid not in users:
@@ -67,14 +73,15 @@ def check_answer(msg, correct):
     else:
         bot.send_message(uid,f"❌ ভুল উত্তর! সঠিক উত্তর ছিল: {correct}")
 
+# ===== BALANCE =====
 def balance(msg):
     uid = msg.from_user.id
     if uid not in users:
         return bot.send_message(uid,"প্রথমে /start দাও।")
     bal = users[uid]["balance"]
-    bot.send_message(uid,f"💰 তোমার ব্যালেন্স: ৳{bal:.2f}
-/withdraw দিয়ে উত্তোলন করতে পারো।")
+    bot.send_message(uid,f"💰 তোমার ব্যালেন্স: ৳{bal:.2f}\n/withdraw দিয়ে উত্তোলন করতে পারো।")
 
+# ===== WITHDRAW =====
 @bot.message_handler(commands=["withdraw"])
 def withdraw(msg):
     uid = msg.from_user.id
@@ -101,11 +108,39 @@ def confirm_withdraw(msg, method, bal):
     pending_withdraws.append({"uid":uid,"method":method,"number":number,"amount":bal})
     users[uid]["balance"] = 0
     bot.send_message(uid,f"✅ Withdraw request পাঠানো হয়েছে! ৳{bal:.2f} ({method}: {number})")
-    bot.send_message(ADMIN_ID,f"💸 নতুন Withdraw অনুরোধ:
-User: {uid}
-Method: {method}
-Number: {number}
-Amount: ৳{bal:.2f}")
+    bot.send_message(ADMIN_ID,f"💸 নতুন Withdraw অনুরোধ:\nUser: {uid}\nMethod: {method}\nNumber: {number}\nAmount: ৳{bal:.2f}")
 
+# ===== RUN =====
 print("🤖 QuizMasterPro bot is running...")
 bot.infinity_polling()
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizMasterPro Ad</title>
+<style>
+body { background:#000; color:#fff; text-align:center; font-family:sans-serif; padding:30px; }
+button { background:#00b894; border:none; color:#fff; padding:15px 25px; font-size:18px; border-radius:10px; cursor:pointer; margin-top:20px; }
+</style>
+</head>
+<body>
+<h2>🎬 বিজ্ঞাপন দেখুন এবং রিওয়ার্ড পান!</h2>
+<button onclick="showAd()">বিজ্ঞাপন দেখুন</button>
+<p id="status"></p>
+
+<script>
+function showAd() {
+  document.getElementById('status').innerText="📺 বিজ্ঞাপন লোড হচ্ছে...";
+  show_10156110('pop').then(()=>{
+      document.getElementById('status').innerText="✅ অভিনন্দন! আপনি রিওয়ার্ড পেয়েছেন!";
+      // চাইলে Telegram বটকে জানাতে পারো
+      // window.Telegram.WebApp.sendData("rewarded");
+  }).catch(e=>{
+      document.getElementById('status').innerText="❌ বিজ্ঞাপন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।";
+  });
+}
+</script>
+<script src='//libtl.com/sdk.js' data-zone='10156110' data-sdk='show_10156110'></script>
+</body>
+</html>
